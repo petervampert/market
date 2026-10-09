@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Analysis &amp; ROI Dashboard</title>
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">📈</span>
+      <span class="logo-text">MarketBoard</span>
+    </div>
+    <ul class="nav-links">
+      <li class="nav-item active" data-view="overview">
+        <span class="nav-icon">📊</span><span>Market Overview</span>
+      </li>
+      <li class="nav-item" data-view="portfolio">
+        <span class="nav-icon">💼</span><span>Portfolio</span>
+      </li>
+      <li class="nav-item" data-view="roi">
+        <span class="nav-icon">🏆</span><span>ROI Board</span>
+      </li>
+      <li class="nav-item" data-view="allocation">
+        <span class="nav-icon">🥧</span><span>Allocation</span>
+      </li>
+      <li class="nav-item" data-view="screener">
+        <span class="nav-icon">🔍</span><span>Screener</span>
+      </li>
+      <li class="nav-item" data-view="transactions">
+        <span class="nav-icon">🧾</span><span>Transactions</span>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <div class="status-source" id="status-source">
+        <span class="source-dot" id="source-dot"></span>
+        <span id="source-label">Loading…</span>
+      </div>
+      <div class="status-updated" id="last-updated">—</div>
+      <div class="status-next">
+        Next update: <span id="next-update-countdown">—</span>
+      </div>
+      <button class="refresh-btn" id="refresh-btn" title="Refresh now">⟳ Refresh now</button>
+    </div>
+  </nav>
+
+  <!-- ── Live data status toast ──────────────────────── -->
+  <div id="update-toast" class="update-toast" aria-live="polite"></div>
+
+  <!-- ── Main ────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- ── Top bar ─────────────────────────────────── -->
+    <div class="topbar">
+      <div class="topbar-status">
+        <span class="source-dot topbar-dot" id="topbar-dot"></span>
+        <span id="topbar-source-label">Loading…</span>
+        <span class="topbar-sep">·</span>
+        <span id="topbar-updated">—</span>
+      </div>
+      <button class="yahoo-btn" id="yahoo-fetch-btn">
+        <span class="yahoo-btn-icon" id="yahoo-btn-icon">🔄</span>
+        <span id="yahoo-btn-label">Update from Yahoo Finance</span>
+      </button>
+    </div>
+
+    <!-- Market Overview -->
+    <section id="view-overview" class="view active">
+      <h1 class="page-title">Market Overview</h1>
+
+      <div class="index-bar" id="index-bar">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title">Sector Performance</h2>
+          <div id="sector-table"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Top Movers Today</h2>
+          <div class="movers-grid">
+            <div>
+              <h3 class="movers-label gain">▲ Top Gainers</h3>
+              <div id="top-gainers"></div>
+            </div>
+            <div>
+              <h3 class="movers-label loss">▼ Top Losers</h3>
+              <div id="top-losers"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portfolio -->
+    <section id="view-portfolio" class="view">
+      <h1 class="page-title">Portfolio Summary</h1>
+      <div class="kpi-row" id="portfolio-kpis"></div>
+      <div class="card">
+        <h2 class="card-title">Holdings</h2>
+        <div class="table-wrap">
+          <table id="holdings-table">
+            <thead>
+              <tr>
+                <th>Symbol</th><th>Name</th><th>Type</th>
+                <th class="num">Qty</th>
+                <th class="num">Avg Cost</th>
+                <th class="num">Cur Price</th>
+                <th class="num">Cur Value</th>
+                <th class="num">Unreal. P/L</th>
+                <th class="num">ROI %</th>
+                <th class="num">Day %</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROI Board -->
+    <section id="view-roi" class="view">
+      <h1 class="page-title">Return on Investment Board</h1>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="roi-table">
+            <thead>
+              <tr>
+                <th>Symbol</th><th>Name</th>
+                <th class="num">Invested</th>
+                <th class="num">Cur Value</th>
+                <th class="num">Gain / Loss</th>
+                <th class="num">Simple ROI</th>
+                <th class="num">Ann. ROI (CAGR)</th>
+                <th class="num">Held (yrs)</th>
+                <th>Since</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Allocation -->
+    <section id="view-allocation" class="view">
+      <h1 class="page-title">Portfolio Allocation</h1>
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title">By Asset Type</h2>
+          <canvas id="chart-type" height="280"></canvas>
+          <div id="type-legend" class="legend"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">By Asset</h2>
+          <canvas id="chart-asset" height="280"></canvas>
+          <div id="asset-legend" class="legend"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:1.5rem">
+        <h2 class="card-title">Allocation Breakdown</h2>
+        <div id="allocation-bars"></div>
+      </div>
+    </section>
+
+    <!-- Screener -->
+    <section id="view-screener" class="view">
+      <h1 class="page-title">Asset Screener</h1>
+      <div class="card">
+        <div class="screener-toolbar">
+          <input id="screener-search" class="search-input" type="text" placeholder="Search symbol or name…" />
+          <select id="screener-type" class="type-filter">
+            <option value="">All Types</option>
+            <option value="Stock">Stock</option>
+            <option value="ETF">ETF</option>
+            <option value="Crypto">Crypto</option>
+            <option value="Bond">Bond</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table id="screener-table">
+            <thead>
+              <tr>
+                <th>Symbol</th><th>Name</th><th>Type</th>
+                <th class="num">Price</th>
+                <th class="num">Day Chg $</th>
+                <th class="num">Day Chg %</th>
+                <th class="num">52W High</th>
+                <th class="num">52W Low</th>
+                <th class="num">Volume</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Transactions -->
+    <section id="view-transactions" class="view">
+      <h1 class="page-title">Transaction History</h1>
+      <div class="card">
+        <div class="table-wrap">
+          <table id="tx-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Type</th><th>Symbol</th>
+                <th class="num">Qty</th>
+                <th class="num">Price / Unit</th>
+                <th class="num">Fees</th>
+                <th class="num">Total Cost</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
